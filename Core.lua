@@ -39,7 +39,7 @@ end
 -- GetUpgradeID(itemString)
 --
 -- Arguments:
---   itemString - String - an itemLink or itemString denoting the item
+--   itemString - String - An itemLink or itemString denoting the item
 --
 -- Returns:
 --   Number - The upgrade ID (possibly 0), or nil if the input is invalid or
@@ -50,10 +50,10 @@ end
 
 -- GetCurrentUpgrade(id)
 --
--- Retrieves the current upgrade level of the item, e.g. 1 for a 1/2 item.
+-- Returns the current upgrade level of the item, e.g. 1 for a 1/2 item.
 --
 -- Arguments:
---   id - Number - the upgrade ID of the item (obtained via GetUpgradeID())
+--   id - Number - The upgrade ID of the item (obtained via GetUpgradeID())
 --
 -- Returns:
 --   Number - The current upgrade level of the item. Returns nil if the item
@@ -64,10 +64,10 @@ end
 
 -- GetMaximumUpgrade(id)
 --
--- Retrieves the maximum upgrade level of the item, e.g. 2 for a 1/2 item.
+-- Returns the maximum upgrade level of the item, e.g. 2 for a 1/2 item.
 --
 -- Arguments:
---   id - Number - the upgrade ID of the item (obtained via GetUpgradeID())
+--   id - Number - The upgrade ID of the item (obtained via GetUpgradeID())
 --
 -- Returns:
 --   Number - The maximum upgrade level of the item. Returns nil if the item
@@ -82,7 +82,7 @@ end
 -- 1/2 item or 8 for a 2/2 item.
 --
 -- Arguments:
---   id - Number - the upgrade ID of the item (obtained via GetUpgradeID())
+--   id - Number - The upgrade ID of the item (obtained via GetUpgradeID())
 --
 -- Returns:
 --   Number - The item level increase of the item. Returns 0 if the item
@@ -96,7 +96,7 @@ end
 -- Returns the true item level of the item, including upgrades.
 --
 -- Arguments:
---   itemString - String - an itemLink or itemString denoting the item
+--   itemString - String - An itemLink or itemString denoting the item
 --
 -- Returns:
 --   Number - The true item level of the item, or nil if the input is invalid
