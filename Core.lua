@@ -108,3 +108,127 @@ function lib:GetUpgradedItemLevel(itemString)
 	end
 	return ilvl
 end
+
+--[===========[ ]===========]
+--[===[ Debug utilities ]===]
+--[===========[ ]===========]
+
+
+local function compareTables(t1, t2)
+	local seen = {}
+	for k, v1 in pairs(t1) do
+		seen[k] = true
+		local v2 = rawget(t2, k)
+		if not v2 then return false end
+		if type(v1) ~= type(v2) then return false end
+		if type(v1) == "table" then
+			if not compareTables(v1, v2) then return false end
+		elseif v1 ~= v2 then return false end
+	end
+	for k in pairs(t2) do
+		if not seen[k] then return false end
+	end
+	return true
+end
+
+-- prints the table rows in red and green
+-- omits the lead { and the trailing }
+local function printDiffTable(t1, t2)
+	local keys, seen = {}, {}
+	for k in pairs(t1) do
+		keys[#keys+1] = k
+		seen[k] = true
+	end
+	for k in pairs(t2) do
+		if not seen[k] then
+			keys[#keys+1] = k
+		end
+	end
+	table.sort(keys)
+	local function formatTable(t)
+		local comps = {}
+		for k, v in pairs(t) do
+			comps[#comps+1] = ("%s = %d"):format(k, v)
+		end
+		return "{ " .. table.concat(comps, ", ") .. " }"
+	end
+	for _, k in ipairs(keys) do
+		local v1, v2 = rawget(t1, k), rawget(t2, k)
+		local equal
+		if type(v1) == "table" and type(v2) == "table" then equal = compareTables(v1, v2)
+		else equal = v1 == v2 end
+		if not equal then
+			if v1 then
+				print(("|cffff0000    [%d] = %s,|r"):format(k, formatTable(v1)))
+			end
+			if v2 then
+				print(("|cff00ff00    [%d] = %s,|r"):format(k, formatTable(v2)))
+			end
+		end
+	end
+end
+
+-- Scans the first 10000 upgrade IDs
+ do
+	local debugFrame
+	local worker
+	local newTable
+	local debugTooltip
+	function lib:_CheckUpgradeTable()
+		if worker then
+			print("|cffff0000LibItemUpgradeInfo-1.0: upgrade check already in progress")
+			return
+		end
+		if not debugFrame then
+			debugFrame = _G.CreateFrame("frame")
+			debugFrame:Hide()
+			debugFrame:SetScript("OnUpdate", function()
+				local ok, result, count, max = pcall(worker)
+				if not ok or result then
+					debugFrame:Hide()
+					worker = nil
+				end
+				if not ok then
+					print("|cffff0000LibItemUpgradeInfo-1.0 error: " .. result .. "|r")
+				elseif result then
+					print("LibItemUpgradeInfo-1.0: scan complete")
+					if compareTables(upgradeTable, newTable) then
+						print("LibItemUpgradeInfo-1.0: |cff00ff00No changes|r")
+					else
+						print("LibItemUpgradeInfo-1.0: |cffff0000New table:|r {")
+						printDiffTable(upgradeTable, newTable)
+						print("}")
+					end
+				else
+					print("LibItemUpgradeInfo-1.0: scanning " .. count .. "/" .. max)
+				end
+			end)
+		end
+		if not debugTooltip then
+			debugTooltip = _G.CreateFrame("GameTooltip", "LibItemUpgradeInfoTooltip", nil, "GameTooltipTemplate")
+			debugTooltip:SetOwner(_G.WorldFrame, "ANCHOR_NONE")
+		end
+		newTable = {}
+		local itemLink = "|cff0070dd|Hitem:89551:0:0:0:0:0:0:0:90:0:0|h[Aspirant's Staff of Harmony]|h|r"
+		local itemLevel = select(4, _G.GetItemInfo(itemLink))
+		assert(itemLevel, "Can't find item level for itemLink")
+		local count, max, batchsize = 0, 10000, 200
+		worker = function()
+			for i = count, math.min(max, count+batchsize) do
+				local link = itemLink:gsub("%d+|h", i.."|h")
+				debugTooltip:ClearLines()
+				debugTooltip:SetHyperlink(link)
+				local upgrade, max
+				local curLevel, maxLevel = _G.LibItemUpgradeInfoTooltipTextLeft3:GetText():match("^Upgrade Level: (%d+)/(%d+)")
+				local ilvl = tonumber(_G.LibItemUpgradeInfoTooltipTextLeft2:GetText():match("Item Level (%d+)"))
+				assert(ilvl ~= nil, "Can't find ItemLevel in tooltip: " .. _G.LibItemUpgradeInfoTooltipTextLeft2:GetText())
+				if curLevel or maxLevel or ilvl ~= itemLevel then
+					newTable[i] = { upgrade = tonumber(curLevel), max = tonumber(maxLevel), ilevel = ilvl - itemLevel }
+				end
+			end
+			count = count + batchsize
+			return (count > max), count, max
+		end
+		debugFrame:Show()
+	end
+end
