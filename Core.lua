@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 1
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 2
 
 local lib = _G.LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -28,6 +28,15 @@ local upgradeTable = {
 	[460] = { upgrade = 2, max = 4, ilevel = 8 },
 	[461] = { upgrade = 3, max = 4, ilevel = 12 },
 	[462] = { upgrade = 4, max = 4, ilevel = 16 },
+	[465] = { upgrade = 0, max = 2, ilevel = 0 },
+	[466] = { upgrade = 1, max = 2, ilevel = 4 },
+	[467] = { upgrade = 2, max = 2, ilevel = 8 },
+	[468] = { upgrade = 0, max = 4, ilevel = 0 },
+	[469] = { upgrade = 1, max = 4, ilevel = 4 },
+	[470] = { upgrade = 2, max = 4, ilevel = 8 },
+	[471] = { upgrade = 3, max = 4, ilevel = 12 },
+	[472] = { upgrade = 4, max = 4, ilevel = 16 },
+	
 }
 do
 	local stub = { ilevel = 0 }
