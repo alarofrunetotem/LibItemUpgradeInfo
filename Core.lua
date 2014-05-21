@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 3
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 4
 
 local lib = _G.LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -36,14 +36,18 @@ local upgradeTable = {
 	[470] = { upgrade = 2, max = 4, ilevel = 8 },
 	[471] = { upgrade = 3, max = 4, ilevel = 12 },
 	[472] = { upgrade = 4, max = 4, ilevel = 16 },
-	[491] = { upgrade = 0, max = 2, ilevel = 0 },
-	[492] = { upgrade = 1, max = 2, ilevel = 4 },
-	[493] = { upgrade = 2, max = 2, ilevel = 8 },
-	[494] = { upgrade = 0, max = 4, ilevel = 0 },
-	[495] = { upgrade = 1, max = 4, ilevel = 4 },
-	[496] = { upgrade = 2, max = 4, ilevel = 8 },
-	[497] = { upgrade = 3, max = 4, ilevel = 12 },
-	[498] = { upgrade = 4, max = 4, ilevel = 16 },
+	[491] = { upgrade = 0, max = 4, ilevel = 0 },
+	[492] = { upgrade = 1, max = 4, ilevel = 4 },
+	[493] = { upgrade = 2, max = 4, ilevel = 8 },
+	[494] = { upgrade = 0, max = 6, ilevel = 0 },
+	[495] = { upgrade = 1, max = 6, ilevel = 4 },
+	[496] = { upgrade = 2, max = 6, ilevel = 8 },
+	[497] = { upgrade = 3, max = 6, ilevel = 12 },
+	[498] = { upgrade = 4, max = 6, ilevel = 16 },
+	[504] = { upgrade = 3, max = 4, ilevel = 12 },
+	[505] = { upgrade = 4, max = 4, ilevel = 16 },
+	[506] = { upgrade = 5, max = 6, ilevel = 20 },
+	[507] = { upgrade = 6, max = 6, ilevel = 24 },
 }
 do
 	local stub = { ilevel = 0 }
@@ -214,7 +218,9 @@ local function printDiffTable(t1, t2)
 end
 
 -- Scans the first 10000 upgrade IDs
- do
+-- Run this with /run LibStub:GetLibrary("LibItemUpgradeInfo-1.0"):_CheckUpgradeTable()
+-- If you don't have Aspirant's Staff of Harmony cached it may error out, just try again.
+do
 	local debugFrame
 	local worker
 	local newTable
