@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 4
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 5
 
 local lib = _G.LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
