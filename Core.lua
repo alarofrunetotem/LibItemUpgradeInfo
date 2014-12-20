@@ -174,10 +174,14 @@ do
 			-- line 2 may be the item level, or it may be a modifier like "Heroic"
 			-- check up to line 4 just in case
 			for i = 2, 4 do
-				ilvl = tonumber(_G["LibItemUpgradeInfoTooltipTextLeft"..i]:GetText():match("Item Level (%d+)"))
-				if ilvl ~= nil then
-					heirloomCache[itemLink] = ilvl
-					return ilvl, true
+				local label, text = _G["LibItemUpgradeInfoTooltipTextLeft"..i], nil
+				if label then text=label:GetText() end
+				if text then
+					ilvl = tonumber(text:match("Item Level (%d+)"))
+					if ilvl ~= nil then
+						heirloomCache[itemLink] = ilvl
+						return ilvl, true
+					end
 				end
 			end
 		end
@@ -332,3 +336,5 @@ do
 		debugFrame:Show()
 	end
 end
+
+-- vim: set noet sw=4 ts=4:
