@@ -155,6 +155,9 @@ end
 --                     the second return value is true. If the input is invalid,
 --                     (nil, false) is returned.
 do
+	-- Convert the ITEM_LEVEL constant into a pattern for our use
+	local itemLevelPattern = _G["ITEM_LEVEL"]:gsub("%%d", "(%%d+)")
+
 	local scanningTooltip
 	local heirloomCache = {}
 	function lib:GetHeirloomTrueLevel(itemString)
@@ -177,7 +180,7 @@ do
 				local label, text = _G["LibItemUpgradeInfoTooltipTextLeft"..i], nil
 				if label then text=label:GetText() end
 				if text then
-					ilvl = tonumber(text:match("Item Level (%d+)"))
+					ilvl = tonumber(text:match(itemLevelPattern))
 					if ilvl ~= nil then
 						heirloomCache[itemLink] = ilvl
 						return ilvl, true
