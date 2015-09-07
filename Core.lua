@@ -1,6 +1,6 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 8
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 10
 local type,tonumber,GetItemInfoFromHyperlink=type,tonumber,GetItemInfoFromHyperlink
-local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR) 
+local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 local lib=library --#lib Needed to keep Eclipse LDT happy
 if not lib then return end
 local pp=print
@@ -175,7 +175,8 @@ do
 		local header,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14 = strsplit(":", itemString, 16)
 		s13=tonumber(s13) or 0
 		s14=tonumber(s14) or 0
-		scantooltip=((s13==1 or s13==2) and s14==615) -- Really to be better tested
+		scantooltip=(s13==1 or s13==2) and (s14==693 or s14==615) -- Really to be better tested
+		scantooltip=true
 		local _, itemLink, rarity, itemLevel = GetItemInfo(itemString)
 		if not scantooltip then
 			scantooltip=rarity == _G.LE_ITEM_QUALITY_HEIRLOOM
@@ -260,8 +261,10 @@ do
 		index=index or 1
 		cache.tot=cache.tot+1
 		local cached=cache[key]
-		if (cached) then
+		if cached and type(cache)=='table' then
 			return select(index,unpack(cached))
+		else
+			rawset(cache,key,nil)
 		end
 	end
 end
@@ -284,13 +287,13 @@ end
 --
 -- Returns a caching version of GetItemInfo. Can be used to override the original one.
 -- Adds a second parameter to directly retrieving a specific value
--- (Note: internally uses select so it's actually like calling select(n,GetItemInfo(itemID)) 
+-- (Note: internally uses select so it's actually like calling select(n,GetItemInfo(itemID))
 --
 -- Arguments:
 --   self #lib self
 --
 -- Returns:
---   #function The new function	
+--   #function The new function
 function lib:GetCachingGetItemInfo()
 	return CachedGetItemInfo
 end
@@ -300,14 +303,9 @@ function lib:GetCacheStats()
 	local perc=( h>0) and h/c.tot*100 or 0
 	return c.miss,h,perc
 end
-lib.itemframe=lib.itemframe or CreateFrame("Frame",nil,nil)
-lib.itemframe:UnregisterEvent('GET_ITEM_INFO_RECEIVED')
-lib.itemframe:RegisterEvent('GET_ITEM_INFO_RECEIVED',
-	function(itemID)
-		CachedGetItemInfo(itemID)
-	end
-)
-
+if lib.itemframe and lib.itemframe.UnregisterEvent then
+	lib.itemframe:UnregisterEvent('GET_ITEM_INFO_RECEIVED')
+end
 
 --[===========[ ]===========]
 --[===[ Debug utilities ]===]
