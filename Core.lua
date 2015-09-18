@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 10
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 11
 local type,tonumber,GetItemInfoFromHyperlink=type,tonumber,GetItemInfoFromHyperlink
 local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 local lib=library --#lib Needed to keep Eclipse LDT happy
@@ -178,6 +178,9 @@ do
 		scantooltip=(s13==1 or s13==2) and (s14==693 or s14==615) -- Really to be better tested
 		scantooltip=true
 		local _, itemLink, rarity, itemLevel = GetItemInfo(itemString)
+		if (not itemLink) then
+			return nil,false
+		end
 		if not scantooltip then
 			scantooltip=rarity == _G.LE_ITEM_QUALITY_HEIRLOOM
 		end
