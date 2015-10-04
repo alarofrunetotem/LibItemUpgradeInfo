@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 11
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 12
 local type,tonumber,GetItemInfoFromHyperlink=type,tonumber,GetItemInfoFromHyperlink
 local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 local lib=library --#lib Needed to keep Eclipse LDT happy
@@ -194,7 +194,10 @@ do
 				scanningTooltip:SetOwner(_G.WorldFrame, "ANCHOR_NONE")
 			end
 			scanningTooltip:ClearLines()
-			scanningTooltip:SetHyperlink(itemLink)
+			local rc,message=pcall(scanningTooltip.SetHyperlink,scanningTooltip,itemLink)
+			if (not rc) then
+				return nil,false
+			end
 			-- line 1 is the item name
 			-- line 2 may be the item level, or it may be a modifier like "Heroic"
 			-- check up to line 4 just in case
@@ -264,7 +267,7 @@ do
 		index=index or 1
 		cache.tot=cache.tot+1
 		local cached=cache[key]
-		if cached and type(cache)=='table' then
+		if cached and type(cached)=='table' then
 			return select(index,unpack(cached))
 		else
 			rawset(cache,key,nil)
