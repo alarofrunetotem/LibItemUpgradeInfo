@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 14
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 15
 local type,tonumber,select,strsplit,GetItemInfoFromHyperlink=type,tonumber,select,strsplit,GetItemInfoFromHyperlink
 local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 local lib=library --#lib Needed to keep Eclipse LDT happy
@@ -76,7 +76,7 @@ end
 function lib:GetUpgradeID(itemString)
 	--local instaid,upgradeid =itemString:match("item:%d+:%d+:%d+:%d+:%d+:%d+:%-?%d+:%-?%d+:%d+:(%d+):%d:%d:(%d)")
 	--local instaid,upgradeid =itemString:match("item:%d+:%d+:%d+:%d+:%d+:%d+:%-?%d+:%-?%d+:%d+:%d+:(%d+):%d+:%d+:(%d+)")
-	local itemString = itemString:match("item[%-?%d:]+") -- Standardize itemlink to itemstring
+	local itemString = itemString:match("item[%-?%d:]+") or ""-- Standardize itemlink to itemstring
 	local instaid, _, numBonuses, affixes = select(12, strsplit(":", itemString, 15))
 	instaid=tonumber(instaid) or 7
 	if instaid >0 and (instaid-4)%8==0 then
