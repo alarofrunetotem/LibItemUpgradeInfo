@@ -1,8 +1,9 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 17
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 18
 local type,tonumber,select,strsplit,GetItemInfoFromHyperlink=type,tonumber,select,strsplit,GetItemInfoFromHyperlink
 local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 local lib=library --#lib Needed to keep Eclipse LDT happy
 if not lib then return end
+local pp=print
 --@debug@
 LoadAddOn("Blizzard_DebugTools")
 LoadAddOn("LibDebug")
@@ -11,7 +12,6 @@ if LibDebug then LibDebug() end
 --[===[@non-debug@
 local print=function() end
 --@end-non-debug@]===]
-local pp=print
 local upgradeTable = {
 	[  1] = { upgrade = 1, max = 1, ilevel = 8 },
 	[373] = { upgrade = 1, max = 3, ilevel = 4 },
@@ -82,6 +82,7 @@ local itemCache = setmetatable({},{__index=function(table,key) return {} end})
 local heirloomcolor
 local emptytable={}
 local function ScanTip(itemLink,itemLevel)
+	if not heirloomcolor then heirloomcolor =_G.ITEM_QUALITY_COLORS[_G.LE_ITEM_QUALITY_HEIRLOOM].hex end
 	if type(itemCache[itemLink].ilevel)=="nil" then
 		if not scanningTooltip then
 			scanningTooltip = _G.CreateFrame("GameTooltip", "LibItemUpgradeInfoTooltip", nil, "GameTooltipTemplate")
@@ -95,7 +96,7 @@ local function ScanTip(itemLink,itemLevel)
 		-- line 1 is the item name
 		-- line 2 may be the item level, or it may be a modifier like "Heroic"
 		-- check up to line 6 just in case
-		local ilevel,soulbound,bop,boe,boa
+		local ilevel,soulbound,bop,boe,boa,heirloom
 		for i = 2, 6 do
 			local label, text = _G["LibItemUpgradeInfoTooltipTextLeft"..i], nil
 			if label then text=label:GetText() end
@@ -108,7 +109,10 @@ local function ScanTip(itemLink,itemLevel)
 				if boa==nil then boa = text:find(boaPattern2) end
 			end
 		end
-		itemCache[itemLink]={ilevel=ilevel or itemLevel,soulbound=soulbound,bop=bop,boe=boe}
+		if (itemLink:find(heirloomcolor)) then
+			heirloom=true
+		end
+		itemCache[itemLink]={ilevel=ilevel or itemLevel,soulbound=soulbound,bop=bop,boe=boe,heirloom=heirloom}
 	end
 	return itemCache[itemLink]
 end
@@ -220,16 +224,14 @@ end
 --                     (nil, false) is returned.
 -- Convert the ITEM_LEVEL constant into a pattern for our use
 function lib:GetHeirloomTrueLevel(itemString)
-	if not heirloomcolor then heirloomcolor =_G.ITEM_QUALITY_COLORS[_G.LE_ITEM_QUALITY_HEIRLOOM].hex end
 	if type(itemString) ~= "string" then return nil,false end
 	local _, itemLink, rarity, itemLevel = GetItemInfo(itemString)
 	if (not itemLink) then
 		return nil,false
 	end
-	if itemLink:find(heirloomcolor) then
-		local rc=ScanTip(itemLink,itemLevel)
-		if rc.ilevel then rc.heirloom=true end
-		return rc.ilevel,rc.heirloom
+	local rc=ScanTip(itemLink,itemLevel)
+	if rc.ilevel then
+		return rc.ilevel,true
 	end
 	return itemLevel, false
 end
@@ -284,6 +286,21 @@ end
 function lib:IsBoe(itemString)
 	local rc=ScanTip(itemString)
 	return rc.boe
+end
+
+-- IsHeirloom(itemString)
+--
+-- Check an item for  Heirloom
+--
+-- Arguments:
+--   itemString - String - An itemLink or itemString denoting the item
+--
+-- Returns:
+--   Boolean - True if Heirloom
+
+function lib:IsHeirloom(itemString)
+	local rc=ScanTip(itemString)
+	return rc.heirloom
 end
 
 
