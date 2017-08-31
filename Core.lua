@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 28
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 29
 local type,tonumber,select,strsplit,GetItemInfoFromHyperlink=type,tonumber,select,strsplit,GetItemInfoFromHyperlink
 local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 local lib=library --#lib Needed to keep Eclipse LDT happy
