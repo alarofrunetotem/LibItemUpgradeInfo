@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 30
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 31
 local type,tonumber,select,strsplit,GetItemInfoFromHyperlink=type,tonumber,select,strsplit,GetItemInfoFromHyperlink
 local unpack,GetDetailedItemLevelInfo=unpack,GetDetailedItemLevelInfo
 local library,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
