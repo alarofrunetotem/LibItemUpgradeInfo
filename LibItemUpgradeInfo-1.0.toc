@@ -1,4 +1,4 @@
-## Interface: 90001
+## Interface: 90005
 ## Title: Lib: ItemUpgradeInfo-1.0
 ## Notes: Database of item upgrade IDs
 ## Author: eridius
