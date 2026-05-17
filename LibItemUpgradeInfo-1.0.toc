@@ -1,6 +1,18 @@
-## Interface: 110105, 110107
+## Interface: 120005
 ## Title: Lib: ItemUpgradeInfo-1.0
 ## Notes: Database of item upgrade IDs
+## OptionalDeps: LibInit
+## Category: Libraries
+## Category-deDE: Bibliotheken
+## Category-esES: Bibliotecas
+## Category-esMX: Bibliotecas
+## Category-frFR: Bibliothèques
+## Category-itIT: Librerie
+## Category-koKR:
+## Category-ptBR: Bibliotecas
+## Category-ruRU: Библиотеки
+## Category-zhCN: 函数库
+## Category-zhTW: 函式庫
 ## Author: eridius
 ## Version: @project-version@ 110005
 ## X-Revision: @project-abbreviated-hash@
