@@ -17,5 +17,7 @@
 ## Version: @project-version@ 110005
 ## X-Revision: @project-abbreviated-hash@
 ## X-Category: Library
+## X-Curse-Project-ID: 52100
+
 
 LibItemUpgradeInfo-1.0.xml
