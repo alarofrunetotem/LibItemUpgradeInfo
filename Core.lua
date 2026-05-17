@@ -1,20 +1,20 @@
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 32
-local type,tonumber,select,strsplit,GetItemInfoFromHyperlink=type,tonumber,select,strsplit,GetItemInfoFromHyperlink
+---@diagnostic disable-next-line: undefined-field
+local __FILE__ = tostring(debugstack(1, 2, 0):match("(.*):2:")) -- Always check line number in regexp and file
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 34
+local type, tonumber, select, strsplit, GetItemInfoFromHyperlink = type, tonumber, select, strsplit,
+	GetItemInfoFromHyperlink
 ---@diagnostic disable-next-line: deprecated
-local unpack,GetDetailedItemLevelInfo=unpack,C_Item.GetDetailedItemLevelInfo
----@class lib 
+local unpack, GetDetailedItemLevelInfo = unpack, C_Item.GetDetailedItemLevelInfo
+---@class lib
 ---@diagnostic disable-next-line: assign-type-mismatch
-local lib,previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
+local lib, previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
-local pp=print
---@debug@
-C_AddOns.LoadAddOn("Blizzard_DebugTools")
-C_AddOns.LoadAddOn("LibDebug")
-if LibDebug then LibDebug() end
---@end-debug@
---[===[@non-debug@
-local print=function() end
---@end-non-debug@]===]
+local print = print
+if (_G.AlarDbg) then
+	_G.AlarMessage('Loaded from' .. __FILE__ .. ' over ' .. previous)
+else
+	print = function() end
+end
 --[[
 Caching system
 1	itemName	String	The name of the item.
@@ -36,79 +36,79 @@ Caching system
 17	isCraftingReagent bool
 --]]
 -- ItemLink Constants
-local i_Name=1
-local i_Link=2
-local i_Rarity=3
-local i_Quality=3
-local i_Level=4
-local i_MinLevel =5
-local i_ClassName=6
-local i_SubClassName=7
-local i_StackCount=8
-local i_EquipLoc=9
-local i_TextureId=10
-local i_SellPrice=11
-local i_ClassID=12
-local i_SubClass_ID=13
-local i_unk1=14
-local i_unk2=15
-local i_unk3=16
-local i_unk4=17
-local LE_ITEM_QUALITY_ARTIFACT=Enum.ItemQuality.Artifact
-local LE_ITEM_QUALITY_HEIRLOOM=Enum.ItemQuality.Heirloom
+local i_Name = 1
+local i_Link = 2
+local i_Rarity = 3
+local i_Quality = 3
+local i_Level = 4
+local i_MinLevel = 5
+local i_ClassName = 6
+local i_SubClassName = 7
+local i_StackCount = 8
+local i_EquipLoc = 9
+local i_TextureId = 10
+local i_SellPrice = 11
+local i_ClassID = 12
+local i_SubClass_ID = 13
+local i_unk1 = 14
+local i_unk2 = 15
+local i_unk3 = 16
+local i_unk4 = 17
+local LE_ITEM_QUALITY_ARTIFACT = Enum.ItemQuality.Artifact
+local LE_ITEM_QUALITY_HEIRLOOM = Enum.ItemQuality.Heirloom
 do
-local oGetItemInfo=GetItemInfo
-lib.itemcache=lib.itemcache or
-	setmetatable({miss=0,tot=0},{
-		__index=function(table,key)
-			if (not key) then return "" end
-			if (key=="miss") then return 0 end
-			if (key=="tot") then return 0 end
-			local cached={oGetItemInfo(key)}
-			if #cached==0 then return nil end
-			local itemLink=cached[2]
-			if not itemLink then return nil end
-			local itemID=lib:GetItemID(itemLink)
-			local quality=cached[3]
-			local cacheIt=true
-			if quality==LE_ITEM_QUALITY_ARTIFACT then
-				local relic1, relic2, relic3 = select(4,strsplit(':', itemLink))
-				if relic1 and relic1 ~= '' and not oGetItemInfo(relic1) then cacheIt = false end
-				if relic2 and relic2 ~= '' and not oGetItemInfo(relic2) then cacheIt = false end
-				if relic3 and relic3 ~= '' and not oGetItemInfo(relic3) then cacheIt = false end
+	local oGetItemInfo = GetItemInfo
+	lib.itemcache = lib.itemcache or
+		setmetatable({ miss = 0, tot = 0 }, {
+			__index = function(table, key)
+				if (not key) then return "" end
+				if (key == "miss") then return 0 end
+				if (key == "tot") then return 0 end
+				local cached = { oGetItemInfo(key) }
+				if #cached == 0 then return nil end
+				local itemLink = cached[2]
+				if not itemLink then return nil end
+				local itemID = lib:GetItemID(itemLink)
+				local quality = cached[3]
+				local cacheIt = true
+				if quality == LE_ITEM_QUALITY_ARTIFACT then
+					local relic1, relic2, relic3 = select(4, strsplit(':', itemLink))
+					if relic1 and relic1 ~= '' and not oGetItemInfo(relic1) then cacheIt = false end
+					if relic2 and relic2 ~= '' and not oGetItemInfo(relic2) then cacheIt = false end
+					if relic3 and relic3 ~= '' and not oGetItemInfo(relic3) then cacheIt = false end
+				end
+				cached.englishClass = C_Item.GetItemClassInfo(cached[12])
+				cached.englishSubClass = C_Item.GetItemSubClassInfo(cached[12], cached[13])
+				if cacheIt then
+					rawset(table, key, cached)
+				end
+				table.miss = table.miss + 1
+				return cached
 			end
-			cached.englishClass=C_Item.GetItemClassInfo(cached[12])
-			cached.englishSubClass=C_Item.GetItemSubClassInfo(cached[12],cached[13])
-			if cacheIt then
-				rawset(table,key,cached)
-			end
-			table.miss=table.miss+1
-			return cached
-		end
 
-	})
+		})
 end
-local cache=lib.itemcache
-local	function CachedGetItemInfo(key,index)
+local cache = lib.itemcache
+local function CachedGetItemInfo(key, index)
 	if not key then return nil end
-	index=index or 1
-	cache.tot=cache.tot+1
-	local cached=cache[key]
-	if cached and type(cached)=='table' then
-		return select(index,unpack(cached))
+	index = index or 1
+	cache.tot = cache.tot + 1
+	local cached = cache[key]
+	if cached and type(cached) == 'table' then
+		return select(index, unpack(cached))
 	else
-		rawset(cache,key,nil) -- voiding broken cache entry
+		rawset(cache, key, nil) -- voiding broken cache entry
 	end
 end
 
 local upgradeTable = {
-	[  1] = { upgrade = 1, max = 1, ilevel = 8 },
+	[1] = { upgrade = 1, max = 1, ilevel = 8 },
 	[373] = { upgrade = 1, max = 3, ilevel = 4 },
 	[374] = { upgrade = 2, max = 3, ilevel = 8 },
 	[375] = { upgrade = 1, max = 3, ilevel = 4 },
 	[376] = { upgrade = 2, max = 3, ilevel = 4 },
 	[377] = { upgrade = 3, max = 3, ilevel = 4 },
-	[378] = {                       ilevel = 7 },
+	[378] = { ilevel = 7 },
 	[379] = { upgrade = 1, max = 2, ilevel = 4 },
 	[380] = { upgrade = 2, max = 2, ilevel = 4 },
 	[445] = { upgrade = 0, max = 2, ilevel = 0 },
@@ -158,9 +158,11 @@ local upgradeTable = {
 }
 do
 	local stub = { ilevel = 0 }
-	setmetatable(upgradeTable, { __index = function(t, key)
-		return stub
-	end})
+	setmetatable(upgradeTable, {
+		__index = function(t, key)
+			return stub
+		end
+	})
 end
 -- Tooltip Scanning stuff
 ---@diagnostic disable-next-line: undefined-field
@@ -168,110 +170,171 @@ local itemLevelPattern = _G.ITEM_LEVEL:gsub("%%d", "(%%d+)")
 ---@diagnostic disable-next-line: undefined-field
 local soulboundPattern = _G.ITEM_SOULBOUND
 ---@diagnostic disable-next-line: undefined-field
-local boePattern=_G.ITEM_BIND_ON_EQUIP
+local boePattern = _G.ITEM_BIND_ON_EQUIP
 ---@diagnostic disable-next-line: undefined-field
-local bopPattern=_G.ITEM_BIND_ON_PICKUP
+local bopPattern = _G.ITEM_BIND_ON_PICKUP
 ---@diagnostic disable-next-line: undefined-field
-local boaPattern1=_G.ITEM_BIND_TO_BNETACCOUNT
+local boaPattern1 = _G.ITEM_BIND_TO_BNETACCOUNT
 ---@diagnostic disable-next-line: undefined-field
-local boaPattern2=_G.ITEM_BNETACCOUNTBOUND
-local patterns={
-  [soulboundPattern]="soulbound",
-  [boePattern]="boe",
-  [bopPattern]="bop",
-  [boaPattern1]="boa",
-  [boaPattern2]="boa",
+local boaPattern2 = _G.ITEM_BNETACCOUNTBOUND
+local patterns = {
+	[soulboundPattern] = "soulbound",
+	[boePattern] = "boe",
+	[bopPattern] = "bop",
+	[boaPattern1] = "boa",
+	[boaPattern2] = "boa",
 }
 
 local scanningTooltip
 local anchor
-lib.tipCache = lib.tipCache or setmetatable({},{__index=function(table,key) return {} end})
+lib.tipCache = lib.tipCache or setmetatable({}, { __index = function(table, key) return {} end })
 local tipCache = lib.tipCache
-local emptytable={}
+local emptytable = {}
 
-local function ScanTip(itemLink,itemLevel,show)
-	if type(itemLink)=="number" then
-		itemLink=CachedGetItemInfo(itemLink,2)
-		if not itemLink then return emptytable end
+local function NewScanTip(itemLink, unit, show)
+	if type(itemLink) == "string" then
+		itemLink = lib:GetItemID(itemLink)
 	end
-	if type(tipCache[itemLink].ilevel)=="nil"then -- or not tipCache[itemLink].cached then
-		if true then
-			return emptytable
-		end
-		local cacheIt=true
+	local key = 'nokey'
+	if (unit) then
+		local name, realm = UnitName(unit)
+		local level = UnitLevel(unit)
+		key = format("%s:%s:%d:%d", name, realm or 'local', level, itemLink)
+	end
+	if key == 'nokey' or type(tipCache[key].ilevel) == "nil" or not tipCache[key].cached then
+		local cacheIt = key and true or false
 		if not scanningTooltip then
-			anchor=CreateFrame("Frame")
+			anchor = CreateFrame("Frame")
 			anchor:Hide()
 			scanningTooltip = _G.CreateFrame("GameTooltip", "LibItemUpgradeInfoTooltip", nil, "GameTooltipTemplate")
 		end
 		--scanningTooltip:ClearLines()
-		GameTooltip_SetDefaultAnchor(scanningTooltip,anchor)
-		local itemString=itemLink:match("|H(.-)|h")
-		local rc,message=pcall(scanningTooltip.SetHyperlink,scanningTooltip,itemString)
+		GameTooltip_SetDefaultAnchor(scanningTooltip, MultiBarBottomRightButton12)
+		local rc, message
+		if (unit == 'player') then -- local rc,message=pcall(scanningTooltip.SetHyperlink,scanningTooltip,itemString)
+			rc, message = pcall(scanningTooltip.SetOwnedItemByID, scanningTooltip, itemLink)
+		else
+			rc, message = pcall(scanningTooltip.SetItemByID, scanningTooltip, itemLink)
+		end
 		if (not rc) then
-			return emptytable
+			return { empty = message }
 		end
 		scanningTooltip:Show()
-		local quality,_,_,class,subclass,_,_,_,_,classIndex,subclassIndex=CachedGetItemInfo(itemLink,3)
 
-		-- line 1 is the item name
-		-- line 2 may be the item level, or it may be a modifier like "Heroic"
-		-- check up to line 6 just in case
-		local ilevel,soulbound,bop,boe,boa,heirloom
-		if quality==LE_ITEM_QUALITY_ARTIFACT and itemLevel then
-			local relic1, relic2, relic3 = select(4,strsplit(':', itemLink))
-			if relic1 and relic1 ~= '' and not CachedGetItemInfo(relic1) then cacheIt = false end
-			if relic2 and relic2 ~= '' and not CachedGetItemInfo(relic2) then cacheIt = false end
-			if relic3 and relic3 ~= '' and not CachedGetItemInfo(relic3) then cacheIt = false end
-			ilevel=itemLevel
-		end
 		if show then
-			for i=1,12 do
-				local l, ltext = _G["LibItemUpgradeInfoTooltipTextLeft"..i], nil
-				local r, rtext  = _G["LibItemUpgradeInfoTooltipTextRight"..i], nil
+			for i = 1, 12 do
+				local l, ltext = _G["LibItemUpgradeInfoTooltipTextLeft" .. i], nil
+				local r, rtext = _G["LibItemUpgradeInfoTooltipTextRight" .. i], nil
 				if l then
-  				ltext=l:GetText()
-  				rtext=r:GetText()
-  				_G.print(i,ltext,' - ',rtext)
+					ltext = l:GetText()
+					rtext = r:GetText()
+					_G.print(i, ltext, ' - ', rtext)
 				end
 			end
 		end
-    tipCache[itemLink]={
-      ilevel=nil,
-      soulbound=nil,
-      bop=nil,
-      boe=nil,
-      boa=nil,
-      cached=cacheIt
-    }
-    local c=tipCache[itemLink]
+		tipCache[key] = {
+			ilevel = nil,
+			soulbound = nil,
+			bop = nil,
+			boe = nil,
+			boa = nil,
+			cached = cacheIt
+		}
+		local c = tipCache[key]
 		for i = 2, 6 do
-			local label, text = _G["LibItemUpgradeInfoTooltipTextLeft"..i], nil
-			if label then text=label:GetText() end
+			local label, text = _G["LibItemUpgradeInfoTooltipTextLeft" .. i], nil
+			if label then text = label:GetText() end
 			if text then
-        if show then _G.print("|cFFFFFF00".. text .. "|r") end
-				if c.ilevel==nil then c.ilevel = tonumber(text:match(itemLevelPattern)) end
-				for pattern,key in pairs(patterns) do
-          if type(c[key])=="nil" then
-            if text:find(pattern) then
-              if show then _G.print(text , "matched",pattern) end
- 				      c[key]=true
-            end
-          end
-        end
+				if show then _G.print("|cFFFFFF00" .. text .. "|r") end
+				if c.ilevel == nil then c.ilevel = tonumber(text:match(itemLevelPattern)) end
+				for pattern, key in pairs(patterns) do
+					if type(c[key]) == "nil" then
+						if text:find(pattern) then
+							if show then _G.print(text, "matched", pattern) end
+							c[key] = true
+						end
+					end
+				end
 			end
 		end
-		c.ilevel=c.ilevel or itemLevel
-		itemLevel=GetDetailedItemLevelInfo(itemLink)
-		if type(c.ilevel)=="number" then
-		  c.ilevel=math.max(c.ilevel,itemLevel)
-		else
-		  c.ilevel=itemLevel
-	  end
 
 		scanningTooltip:Hide()
 	end
-	return tipCache[itemLink]
+	return tipCache[key]
+end
+local function ScanTip(itemID, unit, show)
+	if type(itemID) == "string" then
+		itemID = lib:GetItemID(itemID)
+	end
+	local key = 'nokey'
+	if (unit) then
+		local name, realm = UnitName(unit)
+		local level = UnitLevel(unit)
+		key = format("%s:%s:%d:%d", name, realm or 'local', level, itemID)
+	end
+	if true or key == 'nokey' or type(tipCache[key].ilevel) == "nil" or not tipCache[key].cached then
+		local cacheIt = key and true or false
+		if not scanningTooltip then
+			anchor = CreateFrame("Frame")
+			anchor:Hide()
+			scanningTooltip = _G.CreateFrame("GameTooltip", "LibItemUpgradeInfoTooltip", nil, "GameTooltipTemplate")
+		end
+		--scanningTooltip:ClearLines()
+		GameTooltip_SetDefaultAnchor(scanningTooltip, MultiBarBottomRightButton12)
+		local rc, message
+		if (unit == 'player') then -- local rc,message=pcall(scanningTooltip.SetHyperlink,scanningTooltip,itemString)
+			rc, message = pcall(scanningTooltip.SetOwnedItemByID, scanningTooltip, itemID)
+		else
+			rc, message = pcall(scanningTooltip.SetItemByID, scanningTooltip, itemID)
+		end
+		if (not rc) then
+			return { empty = message }
+		end
+		scanningTooltip:Show()
+
+		if show then
+			for i = 1, 12 do
+				local l, ltext = _G["LibItemUpgradeInfoTooltipTextLeft" .. i], nil
+				local r, rtext = _G["LibItemUpgradeInfoTooltipTextRight" .. i], nil
+				if l then
+					ltext = l:GetText()
+					rtext = r:GetText()
+					_G.print(i, ltext, ' - ', rtext)
+				end
+			end
+		end
+		tipCache[key] = {
+			ilevel = nil,
+			soulbound = nil,
+			bop = nil,
+			boe = nil,
+			boa = nil,
+			cached = cacheIt
+		}
+		local c = tipCache[key]
+		for i = 2, 6 do
+			local label, text = _G["LibItemUpgradeInfoTooltipTextLeft" .. i], nil
+			if label then text = label:GetText() end
+			if text then
+				if show then _G.print("|cFFFFFF00" .. text .. "|r") end
+				if c.ilevel == nil then c.ilevel = tonumber(text:match(itemLevelPattern)) end
+				for pattern, key in pairs(patterns) do
+					if type(c[key]) == "nil" then
+						if text:find(pattern) then
+							if show then _G.print(text, "matched", pattern) end
+							c[key] = true
+						end
+					end
+				end
+			end
+		end
+		if (not show) then
+			scanningTooltip:Hide()
+		else
+			DevTools_Dump(tipCache[key])
+		end
+	end
+	return tipCache[key]
 end
 
 
@@ -284,12 +347,12 @@ end
 --   Number - The upgrade ID (possibly 0), or nil if the input is invalid or
 --            does not contain upgrade info
 function lib:GetUpgradeID(itemString)
-	if type(itemString)~="string" then return end
-	local itemString = itemString:match("item[%-?%d:]+") or ""-- Standardize itemlink to itemstring
+	if type(itemString) ~= "string" then return end
+	local itemString = itemString:match("item[%-?%d:]+") or "" -- Standardize itemlink to itemstring
 	local instaid, _, numBonuses, affixes = select(12, strsplit(":", itemString, 15))
-	instaid=tonumber(instaid) or 7
-	numBonuses=tonumber(numBonuses) or 0
-	if instaid >0 and (instaid-4)%8==0 then
+	instaid = tonumber(instaid) or 7
+	numBonuses = tonumber(numBonuses) or 0
+	if instaid > 0 and (instaid - 4) % 8 == 0 then
 		return tonumber((select(numBonuses + 1, strsplit(":", affixes or ''))))
 	end
 end
@@ -381,14 +444,14 @@ end
 --                     (nil, false) is returned.
 -- Convert the ITEM_LEVEL constant into a pattern for our use
 function lib:GetHeirloomTrueLevel(itemString)
-	if type(itemString) ~= "string" then return nil,false end
+	if type(itemString) ~= "string" then return nil, false end
 	local _, itemLink, rarity, itemLevel = CachedGetItemInfo(itemString)
 	if (not itemLink) then
-		return nil,false
+		return nil, false
 	end
-	local rc=ScanTip(itemLink,itemLevel)
+	local rc = ScanTip(itemLink, itemLevel)
 	if rc.ilevel then
-		return rc.ilevel,true
+		return rc.ilevel, true
 	end
 	return itemLevel, false
 end
@@ -399,21 +462,15 @@ end
 --
 -- Arguments:
 --   itemString - String - An itemLink or itemString denoting the item
+--   unit - String - Optional The unit to scan the item for
 --
 -- Returns:
 --   Number - The true item level of the item, or nil if the input is invalid
-function lib:GetUpgradedItemLevel(itemString)
+function lib:GetUpgradedItemLevel(itemString, unit)
 	-- check for heirlooms first
-	local ilvl, isTrue = self:GetHeirloomTrueLevel(itemString)
-	if isTrue then
-		return ilvl
-	end
-	-- not an heirloom? fall back to the regular item logic
-	local id = self:GetUpgradeID(itemString)
-	if ilvl and id then
-		ilvl = ilvl + self:GetItemLevelUpgrade(id)
-	end
-	return ilvl
+	local c = ScanTip(itemString, unit)
+
+	return c.ilevel, c
 end
 
 -- IsBop(itemString)
@@ -421,15 +478,17 @@ end
 -- Check an item for  Bind On Pickup.
 --
 -- Arguments:
+
 --   itemString - String - An itemLink or itemString denoting the item
 --
 -- Returns:
 --   Boolean - True if Bind On Pickup
 
 function lib:IsBop(itemString)
-	local rc=ScanTip(itemString)
+	local rc = ScanTip(itemString)
 	return rc.bop
 end
+
 -- IsBoe(itemString)
 --
 -- Check an item for  Bind On Equip.
@@ -441,9 +500,10 @@ end
 --   Boolean - True if Bind On Equip
 
 function lib:IsBoe(itemString)
-	local rc=ScanTip(itemString)
+	local rc = ScanTip(itemString)
 	return rc.boe
 end
+
 -- IsBoa(itemString)
 --
 -- Check an item for  Bind On Aaccount
@@ -455,7 +515,7 @@ end
 --   Boolean - True if Bind On Equip
 
 function lib:IsBoa(itemString)
-	local rc=ScanTip(itemString)
+	local rc = ScanTip(itemString)
 	return rc.boa
 end
 
@@ -470,7 +530,7 @@ end
 --   Boolean - True if Artifact
 
 function lib:IsArtifact(itemString)
-	return CachedGetItemInfo(itemString,i_Quality)==LE_ITEM_QUALITY_ARTIFACT
+	return CachedGetItemInfo(itemString, i_Quality) == LE_ITEM_QUALITY_ARTIFACT
 end
 
 -- GetClassInfoIsHeirloom(itemString)
@@ -485,10 +545,9 @@ end
 
 
 function lib:GetClassInfo(itemString)
-	local rc=ScanTip(itemString)
-	return rc.class,rc.subclass
+	local rc = ScanTip(itemString)
+	return rc.class, rc.subclass
 end
-
 
 -- IsHeirloom(itemString)
 --
@@ -501,20 +560,21 @@ end
 --   Boolean - True if Heirloom
 
 function lib:IsHeirloom(itemString)
-	return CachedGetItemInfo(itemString,i_Quality) ==LE_ITEM_QUALITY_HEIRLOOM
+	return CachedGetItemInfo(itemString, i_Quality) == LE_ITEM_QUALITY_HEIRLOOM
 end
+
 ---
 -- Parses an itemlink and returns itemId without calling API again
 -- @param #lib self
 -- @param #string itemlink
 -- @return #number itemId or 0
 function lib:GetItemID(itemlink)
-	if (type(itemlink)=="string") then
-			local itemid,context=GetItemInfoFromHyperlink(itemlink)
-			return tonumber(itemid) or 0
-			--return tonumber(itemlink:match("Hitem:(%d+):")) or 0
+	if (type(itemlink) == "string") then
+		local itemid, context = GetItemInfoFromHyperlink(itemlink)
+		return tonumber(itemid) or 0
+		--return tonumber(itemlink:match("Hitem:(%d+):")) or 0
 	else
-			return 0
+		return 0
 	end
 end
 
@@ -531,74 +591,70 @@ end
 --   #function The new function
 
 --@do-not-package--
-local slots={
-INVSLOT_AMMO    = INVSLOT_AMMO,
-INVSLOT_HEAD    = INVSLOT_HEAD,
-INVSLOT_NECK    = INVSLOT_NECK,
-INVSLOT_SHOULDER  = INVSLOT_SHOULDER,
-INVSLOT_BODY    = INVSLOT_BODY,
-INVSLOT_CHEST   = INVSLOT_CHEST,
-INVSLOT_WAIST   = INVSLOT_WAIST,
-INVSLOT_LEGS    = INVSLOT_LEGS,
-INVSLOT_FEET    = INVSLOT_FEET,
-INVSLOT_WRIST   = INVSLOT_WRIST,
-INVSLOT_HAND    = INVSLOT_HAND,
-INVSLOT_FINGER1 = INVSLOT_FINGER1,
-INVSLOT_FINGER2 = INVSLOT_FINGER2,
-INVSLOT_TRINKET1  = INVSLOT_TRINKET1,
-INVSLOT_TRINKET2  = INVSLOT_TRINKET2,
-INVSLOT_BACK    = INVSLOT_BACK,
-INVSLOT_MAINHAND  = INVSLOT_MAINHAND,
-INVSLOT_OFFHAND = INVSLOT_OFFHAND,
-INVSLOT_RANGED    = INVSLOT_RANGED,
-INVSLOT_TABARD    = INVSLOT_TABARD,
+local slots = {
+	INVSLOT_AMMO     = _G.INVSLOT_AMMO,
+	INVSLOT_HEAD     = _G.INVSLOT_HEAD,
+	INVSLOT_NECK     = _G.INVSLOT_NECK,
+	INVSLOT_SHOULDER = _G.INVSLOT_SHOULDER,
+	INVSLOT_BODY     = _G.INVSLOT_BODY,
+	INVSLOT_CHEST    = _G.INVSLOT_CHEST,
+	INVSLOT_WAIST    = _G.INVSLOT_WAIST,
+	INVSLOT_LEGS     = _G.INVSLOT_LEGS,
+	INVSLOT_FEET     = _G.INVSLOT_FEET,
+	INVSLOT_WRIST    = _G.INVSLOT_WRIST,
+	INVSLOT_HAND     = _G.INVSLOT_HAND,
+	INVSLOT_FINGER1  = _G.INVSLOT_FINGER1,
+	INVSLOT_FINGER2  = _G.INVSLOT_FINGER2,
+	INVSLOT_TRINKET1 = _G.INVSLOT_TRINKET1,
+	INVSLOT_TRINKET2 = _G.INVSLOT_TRINKET2,
+	INVSLOT_BACK     = _G.INVSLOT_BACK,
+	INVSLOT_MAINHAND = INVSLOT_MAINHAND,
+	INVSLOT_OFFHAND  = _G.INVSLOT_OFFHAND,
+	INVSLOT_RANGED   = _G.INVSLOT_RANGED,
+	INVSLOT_TABARD   = _G.INVSLOT_TABARD,
 }
-local INVSLOT_FIRST_EQUIPPED = INVSLOT_FIRST_EQUIPPED;
-local INVSLOT_LAST_EQUIPPED = INVSLOT_LAST_EQUIPPED
-_G.SLASH_CHECKSLOT1="/checkslot"
-SlashCmdList['CHECKSLOT'] = function(args,chatframe)
-  _G.print(args)
-  local slot=strsplit(' ',args)
-  if not slot or slot=="" then
-    DevTools_Dump(slots)
-    return
-  end
-  slot=tonumber(slot)
----@diagnostic disable-next-line: param-type-mismatch
-  local itemlink=GetInventoryItemLink("player",slot)
-  if itemlink then
-    for k,v in pairs(slots) do
-      if slot==v then _G.print("Item in " , k) break end
-    end
-    _G.print(itemlink)
-    DevTools_Dump({GetDetailedItemLevelInfo(itemlink)})
-    print(itemlink)
-    _G.print(lib:ScanTip(itemlink))
-  end
-end
-function lib:ScanTip(itemLink)
-  --self.itemcache[itemLink]=nil
-  self.tipCache[itemLink]=nil
-	local GameTooltip=_G.LibItemUpgradeInfoTooltip
-	if GameTooltip then
-		GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-		GameTooltip:SetHyperlink(itemLink)
-		GameTooltip:Show()
+local INVSLOT_FIRST_EQUIPPED = _G.INVSLOT_FIRST_EQUIPPED;
+local INVSLOT_LAST_EQUIPPED = _G.INVSLOT_LAST_EQUIPPED
+_G.SLASH_CHECKSLOT1 = "/checkslot"
+SlashCmdList['CHECKSLOT'] = function(args, chatframe)
+	_G.print(args)
+	local slot = strsplit(' ', args)
+	if not slot or slot == "" then
+		DevTools_Dump(slots)
+		return
 	end
-	return ScanTip(itemLink,100,true)
+	local slot = tonumber(slot)
+	---@diagnostic disable-next-line: param-type-mismatch
+	local itemlink = GetInventoryItemLink("player", slot)
+	if itemlink then
+		for k, v in pairs(slots) do
+			if slot == v then
+				_G.print("Item in ", k)
+				break
+			end
+		end
+		_G.print(itemlink)
+		DevTools_Dump({ GetDetailedItemLevelInfo(itemlink) })
+		print(itemlink)
+		_G.print(lib:ScanTip(itemlink))
+	end
 end
+--self.itemcache[itemLink]=nil
 function lib:GetCachingGetItemInfo()
 	return CachedGetItemInfo
 end
+
 function lib:GetCacheStats()
-	local c=lib.itemcache
-	local h=c.tot-c.miss
-	local perc=( h>0) and h/c.tot*100 or 0
-	return c.miss,h,perc
+	local c = lib.itemcache
+	local h = c.tot - c.miss
+	local perc = (h > 0) and h / c.tot * 100 or 0
+	return c.miss, h, perc
 end
+
 function lib:GetCache()
 	return lib.itemcache
 end
+
 function lib:CleanCache()
 	return wipe(lib.itemcache)
 end
@@ -616,7 +672,9 @@ local function compareTables(t1, t2)
 		if type(v1) ~= type(v2) then return false end
 		if type(v1) == "table" then
 			if not compareTables(v1, v2) then return false end
-		elseif v1 ~= v2 then return false end
+		elseif v1 ~= v2 then
+			return false
+		end
 	end
 	for k in pairs(t2) do
 		if not seen[k] then return false end
@@ -629,33 +687,36 @@ end
 local function printDiffTable(t1, t2)
 	local keys, seen = {}, {}
 	for k in pairs(t1) do
-		keys[#keys+1] = k
+		keys[#keys + 1] = k
 		seen[k] = true
 	end
 	for k in pairs(t2) do
 		if not seen[k] then
-			keys[#keys+1] = k
+			keys[#keys + 1] = k
 		end
 	end
 	table.sort(keys)
 	local function formatTable(t)
 		local comps = {}
 		for k, v in pairs(t) do
-			comps[#comps+1] = ("%s = %d"):format(k, v)
+			comps[#comps + 1] = ("%s = %d"):format(k, v)
 		end
 		return "{ " .. table.concat(comps, ", ") .. " }"
 	end
 	for _, k in ipairs(keys) do
 		local v1, v2 = rawget(t1, k), rawget(t2, k)
 		local equal
-		if type(v1) == "table" and type(v2) == "table" then equal = compareTables(v1, v2)
-		else equal = v1 == v2 end
+		if type(v1) == "table" and type(v2) == "table" then
+			equal = compareTables(v1, v2)
+		else
+			equal = v1 == v2
+		end
 		if not equal then
 			if v1 then
-				pp(("|cffff0000    [%d] = %s,|r"):format(k, formatTable(v1)))
+				print(("|cffff0000    [%d] = %s,|r"):format(k, formatTable(v1)))
 			end
 			if v2 then
-				pp(("|cff00ff00    [%d] = %s,|r"):format(k, formatTable(v2)))
+				print(("|cff00ff00    [%d] = %s,|r"):format(k, formatTable(v2)))
 			end
 		end
 	end
@@ -671,7 +732,7 @@ do
 	local debugTooltip
 	function lib:_CheckUpgradeTable(itemLink)
 		if worker then
-			pp("|cffff0000LibItemUpgradeInfo-1.0: upgrade check already in progress")
+			print("|cffff0000LibItemUpgradeInfo-1.0: upgrade check already in progress|r")
 			return
 		end
 		if not debugFrame then
@@ -684,18 +745,18 @@ do
 					worker = nil
 				end
 				if not ok then
-					pp("|cffff0000LibItemUpgradeInfo-1.0 error: " .. result .. "|r")
+					print("|cffff0000LibItemUpgradeInfo-1.0 error: " .. result .. "|r")
 				elseif result then
-					pp("LibItemUpgradeInfo-1.0: scan complete")
+					print("LibItemUpgradeInfo-1.0: scan complete")
 					if compareTables(upgradeTable, newTable) then
-						pp("LibItemUpgradeInfo-1.0: |cff00ff00No changes|r")
+						print("LibItemUpgradeInfo-1.0: |cff00ff00No changes|r")
 					else
-						pp("LibItemUpgradeInfo-1.0: |cffff0000New table:|r {")
+						print("LibItemUpgradeInfo-1.0: |cffff0000New table:|r {")
 						printDiffTable(upgradeTable, newTable)
-						pp("}")
+						print("}")
 					end
 				else
-					pp("LibItemUpgradeInfo-1.0: scanning " .. count .. "/" .. max)
+					print("LibItemUpgradeInfo-1.0: scanning " .. count .. "/" .. max)
 				end
 			end)
 		end
@@ -706,23 +767,26 @@ do
 		end
 		newTable = {}
 		--local itemLink = "|cff0070dd|Hitem:89551:0:0:0:0:0:0:0:90:253:0:0:1:0|h[Aspirant's Staff of Harmony]|h|r"
-		local itemLink = itemLink or "|cff0070dd|Hitem:89551:0:0:0:0:0:0:0:100:253:4:0:0:0|h[Aspirant's Staff of Harmony]|h|r"
--- Livello è il 9,upgradeid il 14. Al decimo posto, un valore che deve essere 4 o 4+n *8) per far scattare l'uso dell'upgradeid
+		local itemLink = itemLink or
+			"|cff0070dd|Hitem:89551:0:0:0:0:0:0:0:100:253:4:0:0:0|h[Aspirant's Staff of Harmony]|h|r"
+		-- Livello è il 9,upgradeid il 14. Al decimo posto, un valore che deve essere 4 o 4+n *8) per far scattare l'uso dell'upgradeid
 		local itemLevel = select(4, C_Item.GetItemInfo(itemLink))
 		assert(itemLevel, "Can't find item level for itemLink")
 		local count, max, batchsize = 0, 10000, 200
 		worker = function()
-			for i = count, math.min(max, count+batchsize) do
-				local link = itemLink:gsub("%d+|h", i.."|h")
+			for i = count, math.min(max, count + batchsize) do
+				local link = itemLink:gsub("%d+|h", i .. "|h")
 				debugTooltip:ClearLines()
 				debugTooltip:SetHyperlink(link)
 				local upgrade, max
-				local curLevel, maxLevel = _G.LibItemUpgradeInfoDebugTooltipTextLeft3:GetText():match("^Upgrade Level: (%d+)/(%d+)")
+				local curLevel, maxLevel = _G.LibItemUpgradeInfoDebugTooltipTextLeft3:GetText():match(
+					"^Upgrade Level: (%d+)/(%d+)")
 				local ilvl = tonumber(_G.LibItemUpgradeInfoDebugTooltipTextLeft2:GetText():match("Item Level (%d+)"))
 				if not ilvl then
 					ilvl = tonumber(_G.LibItemUpgradeInfoDebugTooltipTextLeft3:GetText():match("Item Level (%d+)"))
 				end
-				assert(ilvl ~= nil, "Can't find ItemLevel in tooltip: " .. _G.LibItemUpgradeInfoDebugTooltipTextLeft2:GetText())
+				assert(ilvl ~= nil,
+					"Can't find ItemLevel in tooltip: " .. _G.LibItemUpgradeInfoDebugTooltipTextLeft2:GetText())
 				if curLevel or maxLevel or ilvl ~= itemLevel then
 					newTable[i] = { upgrade = tonumber(curLevel), max = tonumber(maxLevel), ilevel = ilvl - itemLevel }
 				end
