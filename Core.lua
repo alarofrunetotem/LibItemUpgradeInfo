@@ -11,7 +11,7 @@ local lib, previous = _G.LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 local print = print
 if (_G.AlarDbg) then
-	_G.AlarMessage('Loaded from' .. __FILE__ .. ' over ' .. previous)
+	_G.AlarMessage('Loaded from' .. __FILE__ .. ' over ' .. (previous or 'nil'))
 else
 	print = function() end
 end
