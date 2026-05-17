@@ -1,6 +1,6 @@
 ---@diagnostic disable-next-line: undefined-field
 local __FILE__ = tostring(debugstack(1, 2, 0):match("(.*):2:")) -- Always check line number in regexp and file
-local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 34
+local MAJOR, MINOR = "LibItemUpgradeInfo-1.0", 35
 local type, tonumber, select, strsplit, GetItemInfoFromHyperlink = type, tonumber, select, strsplit,
 	GetItemInfoFromHyperlink
 ---@diagnostic disable-next-line: deprecated
